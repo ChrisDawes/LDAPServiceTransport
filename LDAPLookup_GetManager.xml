@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<serviceDescription>
+	<id>LDAP-Get-Employee-Manager</id>
+	<defaultLocale>en</defaultLocale>
+	<transportId>MyLDAPServiceTransport</transportId>
+	<name xml:lang="en">LDAP Lookup Service - Get Employee's Manager</name>
+	<description xml:lang="en">The LDAP Manager Lookup Service lists the manager of a provided employee.</description>
+	<!-- OPTIONAL: Define alias value if required to query LDAP.  The ALIAS is configured in WebSphere. -->
+	<!--credentials providerId="j2cAlias">
+		<property name="alias" value="someNode01/LDAPServiceUser"/>
+	</credentials-->
+	<inbound>
+		<parameters>
+			<parameter>
+				<id>searchName</id>
+				<name xml:lang="en">Search Name</name>
+				<description xml:lang="en">The employee name to search for.</description>
+				<mandatory>false</mandatory>
+				<type>STRING</type>
+			</parameter>
+			<parameter>
+				<id>searchEmail</id>
+				<name xml:lang="en">Search Email</name>
+				<description xml:lang="en">The employee email to search for.</description>
+				<mandatory>false</mandatory>
+				<type>STRING</type>
+			</parameter>		
+		</parameters>
+		<serviceMapping>
+			<constants>
+				<constant>
+					<!-- REQUIRED: The URL of the LDAP service -->
+					<id>url</id>
+					<value>ldap://myldapserver389/</value>
+				</constant>
+				<constant>
+					<!-- REQUIRED: The baseDN of the LDAP service -->
+					<id>basedn</id>
+					<value>o=ibm.com</value>
+				</constant>
+				<constant>
+					<!-- REQUIRED: The filter that will be used to query the LDAP -->
+					<id>filter</id>
+					<value>(&amp;(objectClass=person)(cn={0}*)(emailAddress={1}*))</value>
+				</constant>
+				<constant>
+					<id>result-attributes</id>
+					<value>cn,telephoneNumber,tieline,emailAddress,managerSerialNumber,managerCountryCode,serialNumber</value>
+				</constant>				
+				<constant>
+					<!-- OPTIONAL: The secondary filter that will be used to query the LDAP for each record returned by the first query -->
+					<id>sub-filter</id>
+					<value>(&amp; (objectClass=person)(serialNumber={0}*)(employeeCountryCode={1}*))</value>
+				</constant>	
+				<constant>
+					<!-- OPTIONAL: The filter variables must be specified in this format "result-attribute:<name-of-ldap-attribute>" 
+								the "result-attribute" value tells the transport to pull the attribute from the parent result set.
+					-->
+					<id>sub-filter-arg-0</id>
+					<value>result-attribute:managerSerialNumber</value>
+				</constant>
+				<constant>
+					<id>sub-filter-arg-1</id>
+					<value>result-attribute:managerCountryCode</value>
+				</constant>
+				<constant>
+					<!--OPTIONAL: Define the list of LDAP properties to be returned by the query
+				              if undefined, the query will return ALL the attributes  -->
+					<id>sub-result-attributes</id>
+					<value>cn,telephoneNumber,tieline,emailAddress,serialNumber</value>
+				</constant>	
+			</constants>
+			<mapping xmlns="">
+				<mapping target="transport:url" source="constant:url" />
+				<mapping target="transport:basedn" source="constant:basedn" />
+				
+				<mapping target="transport:filter" source="constant:filter" />
+				<mapping target="transport:filter-arg-0" source="parameter:searchName" />
+				<mapping target="transport:filter-arg-1" source="parameter:searchEmail" />			
+				<mapping target="transport:result-attributes" source="constant:result-attributes" />
+				
+				<mapping target="transport:sub-filter" source="constant:sub-filter" />
+				<mapping target="transport:sub-filter-arg-0" source="constant:sub-filter-arg-0" />
+				<mapping target="transport:sub-filter-arg-1" source="constant:sub-filter-arg-1" />
+				<mapping target="transport:sub-result-attributes" source="constant:result-attributes" />
+			</mapping>
+		</serviceMapping>
+	</inbound>
+	<outbound>
+		<parameters>
+			<parameter>
+				<id>userFound</id>
+				<name xml:lang="en">User Exists</name>
+				<description xml:lang="en">Returns true if the user is found, otherwise false.</description>
+				<type>BOOLEAN</type>
+			</parameter>
+			<parameter>
+				<id>name</id>
+				<name xml:lang="en">Name</name>
+				<description xml:lang="en">The employee's name.</description>
+				<type>STRING</type>
+			</parameter>		
+			<parameter>
+				<id>serial</id>
+				<name xml:lang="en">Serial Number</name>
+				<description xml:lang="en">The employee's serial number.</description>
+				<type>STRING</type>
+			</parameter>
+			<parameter>
+				<id>email</id>
+				<name xml:lang="en">Email</name>
+				<description xml:lang="en">The employee's email address.</description>
+				<type>STRING</type>
+			</parameter>			
+			<parameter>
+				<id>phone</id>
+				<name xml:lang="en">Phone Number</name>
+				<description xml:lang="en">The employee's phone number.</description>
+				<type>STRING</type>
+			</parameter>
+			<parameter>
+				<id>tieline</id>
+				<name xml:lang="en">Tie Line</name>
+				<description xml:lang="en">The employee's tie line number.</description>
+				<type>STRING</type>
+			</parameter>
+			<parameter>
+				<id>managerName</id>
+				<name xml:lang="en">Manager Name</name>
+				<description xml:lang="en">The manager's name.</description>
+				<type>STRING</type>
+			</parameter>
+			<parameter>
+				<id>managerSerial</id>
+				<name xml:lang="en">Manager Serial Number</name>
+				<description xml:lang="en">The manager's serial number.</description>
+				<type>STRING</type>
+			</parameter>
+			<parameter>
+				<id>managerEmail</id>
+				<name xml:lang="en">Manager Email</name>
+				<description xml:lang="en">The manager's email.</description>
+				<type>STRING</type>
+			</parameter>			
+			<parameter>
+				<id>managerPhone</id>
+				<name xml:lang="en">Manager Phone Number</name>
+				<description xml:lang="en">The manager's phone number.</description>
+				<type>STRING</type>
+			</parameter>
+			<parameter>
+				<id>managerTieline</id>
+				<name xml:lang="en">Manager Tie Line</name>
+				<description xml:lang="en">The manager's tie line number.</description>
+				<type>STRING</type>
+			</parameter>			
+		</parameters>
+		<serviceMapping>
+			<mapping>
+				<mapping source="transport:resultXML" target="parameter:userFound" sourceRef="boolean(string-length(searchresults/searchresult[1]/emailAddress))" sourceType="xml" />							
+				<mapping target="parameter:name" source="transport:resultXML"
+					sourceRef="searchresults/searchresult[1]/cn" sourceType="xml" />			
+				<mapping target="parameter:serial" source="transport:resultXML"
+					sourceRef="searchresults/searchresult[1]/serialNumber" sourceType="xml" />
+				<mapping target="parameter:email" source="transport:resultXML"
+					sourceRef="searchresults/searchresult[1]/emailAddress" sourceType="xml" />
+				<mapping target="parameter:phone" source="transport:resultXML"
+					sourceRef="searchresults/searchresult[1]/telephoneNumber" sourceType="xml" />
+				<mapping target="parameter:tieline" source="transport:resultXML"
+					sourceRef="searchresults/searchresult[1]/tieline" sourceType="xml" />
+
+				<mapping target="parameter:managerName" source="transport:resultXML"
+					sourceRef="searchresults/searchresult[1]/subsearchresults/subsearchresult[1]/cn" sourceType="xml" />
+				<mapping target="parameter:managerSerial" source="transport:resultXML"
+					sourceRef="searchresults/searchresult[1]/subsearchresults/subsearchresult[1]/serialNumber" sourceType="xml" />
+				<mapping target="parameter:managerEmail" source="transport:resultXML"
+					sourceRef="searchresults/searchresult[1]/subsearchresults/subsearchresult[1]/emailAddress" sourceType="xml" />
+				<mapping target="parameter:managerPhone" source="transport:resultXML"
+					sourceRef="searchresults/searchresult[1]/subsearchresults/subsearchresult[1]/telephoneNumber" sourceType="xml" />
+				<mapping target="parameter:managerTieline" source="transport:resultXML"
+					sourceRef="searchresults/searchresult[1]/subsearchresults/subsearchresult[1]/tieline" sourceType="xml" />
+			</mapping>
+		</serviceMapping>
+
+	</outbound>
+</serviceDescription>

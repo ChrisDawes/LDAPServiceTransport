@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<serviceDescription>
+	<!-- The <id> must be a unique value and should not cannot contain spaces or special characters (dashes and underscores are ok). -->
+	<id>LDAP-GetEmployee-New</id>
+	<defaultLocale>en</defaultLocale>
+	<transportId>MyLDAPServiceTransport</transportId>
+	<!-- OPTIONAL: Define alias value if required to query LDAP.  The ALIAS is configured in WebSphere. -->
+	<!--credentials providerId="j2cAlias">
+		<property name="alias" value="someNode01/LDAPServiceUser"/>
+	</credentials-->
+
+  <!-- The <name> element is what will appear in the FEB UI.  This should be something that is easy to identify the purpose of the service. -->
+	<name xml:lang="en">LDAP Lookup Service - Get Employee</name>
+	<description xml:lang="en">The LDAP Lookup Service information about the specified employee.</description>
+	<inbound>
+		<parameters>
+			<!-- Define the parameters that represent LDAP attributes you want to expose to your users. -->
+			<parameter>
+				<id>searchName</id>
+				<name xml:lang="en">Search Name</name>
+				<description xml:lang="en">The employee name to search for.</description>
+				<mandatory>false</mandatory>
+				<type>STRING</type>
+			</parameter>
+			<parameter>
+				<id>searchEmail</id>
+				<name xml:lang="en">Search Email</name>
+				<description xml:lang="en">The employee email to search for. (i.e. xxxxxx@xx.xxx.com)</description>
+				<mandatory>false</mandatory>
+				<type>STRING</type>
+			</parameter>		
+			<parameter>
+				<id>searchUID</id>
+				<name xml:lang="en">Search UID</name>
+				<description xml:lang="en">The employee UID (serial number and country code) to search for. (i.e. xxxxxxxxx)</description>
+				<mandatory>false</mandatory>
+				<type>STRING</type>
+			</parameter>		
+		</parameters>
+		<serviceMapping>
+			<constants>
+				<constant>
+					<!-- REQUIRED: The URL of the LDAP service -->
+					<id>url</id>
+					<value>ldap://myldapserver:389/</value>
+				</constant>
+				<constant>
+					<!-- REQUIRED: The baseDN of the LDAP service -->
+					<id>basedn</id>
+					<value>o=ibm.com</value>
+				</constant>
+				<constant>
+					<!-- REQUIRED: The filter that will be used to query the LDAP -->
+					<id>filter</id>
+					<value>(&amp;(objectClass=person)(cn={0}*)(emailAddress={1}*)(uid={2}*))</value>
+				</constant>				
+				<constant>
+					<!--OPTIONAL: Define the list of LDAP properties to be returned by the query
+				              if undefined, the query will return ALL the attributes  -->
+					<id>result-attributes</id>
+					<value>c,co,cn,div,dept,emailAddress,employeeCountryCode,employeeType,givenName,isManager,jobResponsibilities,mobile,sn,telephoneNumber,title,uid</value>
+				</constant>						
+				<constant>
+					<!-- OPTIONAL: If true, ALL LDAP attributes will be returned, including those with multiple values.  
+				               If false or undefined, then the query will just return the FIRST instance of the attribute -->
+					<id>return-multiple-attr</id>
+					<value>false</value>
+				</constant>
+			</constants>
+			<mapping xmlns="">
+				<mapping target="transport:url" source="constant:url" />
+				<mapping target="transport:basedn" source="constant:basedn" />
+				
+				<mapping target="transport:filter" source="constant:filter" />
+				<mapping target="transport:filter-arg-0" source="parameter:searchName" />
+				<mapping target="transport:filter-arg-1" source="parameter:searchEmail" />				
+				<mapping target="transport:filter-arg-2" source="parameter:searchUID" />		
+				
+				<mapping target="transport:return-multiple-attr" source="constant:return-multiple-attr" />
+				<mapping target="transport:result-attributes" source="constant:result-attributes" />
+			</mapping>
+		</serviceMapping>
+	</inbound>
+	<outbound>
+		<parameters>			
+			<parameter>
+				<id>userFound</id>
+				<name xml:lang="en">User Exists</name>
+				<description xml:lang="en">Returns true if the user is found, otherwise false.</description>
+				<type>BOOLEAN</type>
+			</parameter>
+			
+			<!-- Define a parameter for each of the result-attributes specified. If you did not define the <result-attributes> 
+			     then specify an ouput parameter for all the attributes that you want to be mappable within a FEB app.-->
+			<parameter>
+				<id>cn</id>
+				<name xml:lang="en">Employee's Full Name</name>
+				<description xml:lang="en"></description>
+				<type>STRING</type>
+			</parameter>	
+			<!-- If there are LDAP attributes that contain multiple values, and you setresult-attibutes to "true", then you will
+			     need to provide list parameters to capture the multiple values.  If you do not provide this list structure then 
+			     only the FIRST attribute value will be provided to the caller of the service. -->	
+			<parameter>
+				<id>cn-list</id>
+				<name xml:lang="en">Alternate Name List</name>
+				<description xml:lang="en"></description>
+				<type>LIST</type>
+				<parameters>
+					<parameter>
+						<id>altName</id>
+						<name xml:lang="en">Alternate Name</name>
+						<description xml:lang="en"></description>
+						<type>STRING</type>
+					</parameter>
+				</parameters>
+			</parameter>
+			<!-- END of cn-list definition -->
+			<parameter>
+				<id>givenName</id>
+				<name xml:lang="en">Given Name</name>
+				<description xml:lang="en"></description>
+				<type>STRING</type>
+			</parameter>		
+			<parameter>
+				<id>sn</id>
+				<name xml:lang="en">Last Name</name>
+				<description xml:lang="en"></description>
+				<type>STRING</type>
+			</parameter>					
+			<parameter>
+				<id>uid</id>
+				<name xml:lang="en">Unique Identifier</name>
+				<description xml:lang="en"></description>
+				<type>STRING</type>
+			</parameter>		
+			<parameter>
+				<id>emailAddress</id>
+				<name xml:lang="en">Email Address</name>
+				<description xml:lang="en"></description>
+				<type>STRING</type>
+			</parameter>		
+			<parameter>
+				<id>telephoneNumber</id>
+				<name xml:lang="en">Telephone Number</name>
+				<description xml:lang="en"></description>
+				<type>STRING</type>
+			</parameter>							
+			<parameter>
+				<id>mobile</id>
+				<name xml:lang="en">Mobile Number</name>
+				<description xml:lang="en"></description>
+				<type>STRING</type>
+			</parameter>						
+			<parameter>
+				<id>div</id>
+				<name xml:lang="en">Division Code</name>
+				<description xml:lang="en"></description>
+				<type>STRING</type>
+			</parameter>			
+			<parameter>
+				<id>dept</id>
+				<name xml:lang="en">Department Code</name>
+				<description xml:lang="en"></description>
+				<type>STRING</type>
+			</parameter>		
+			<parameter>
+				<id>employeeCountryCode</id>
+				<name xml:lang="en">Employee Country Code</name>
+				<description xml:lang="en"></description>
+				<type>STRING</type>
+			</parameter>		
+			<parameter>
+				<id>employeeType</id>
+				<name xml:lang="en">Employee Type</name>
+				<description xml:lang="en"></description>
+				<type>STRING</type>
+			</parameter>			
+			<parameter>
+				<id>isManager</id>
+				<name xml:lang="en">Is Manager</name>
+				<description xml:lang="en"></description>
+				<type>STRING</type>
+			</parameter>		
+			<parameter>
+				<id>jobResponsibilities</id>
+				<name xml:lang="en">Job Responsibilities</name>
+				<description xml:lang="en"></description>
+				<type>STRING</type>
+			</parameter>		
+			<parameter>
+				<id>c</id>
+				<name xml:lang="en">Country Code</name>
+				<description xml:lang="en"></description>
+				<type>STRING</type>
+			</parameter>		
+			<parameter>
+				<id>co</id>
+				<name xml:lang="en">Country Name</name>
+				<description xml:lang="en"></description>
+				<type>STRING</type>
+			</parameter>			
+			<parameter>
+				<id>title</id>
+				<name xml:lang="en">Title</name>
+				<description xml:lang="en"></description>
+				<type>STRING</type>
+			</parameter>		
+		</parameters>
+		<serviceMapping>
+			<mapping>
+				<mapping source="transport:resultXML" target="parameter:userFound" sourceRef="boolean(string-length(searchresults/searchresult[1]/emailAddress))" sourceType="xml" />											
+				<mapping source="transport:resultXML" target="parameter:c" sourceRef="string(searchresults/searchresult[1]/c)" sourceType="xml" />			
+				<mapping source="transport:resultXML" target="parameter:co" sourceRef="string(searchresults/searchresult[1]/co)" sourceType="xml" />			
+				<mapping source="transport:resultXML" target="parameter:cn" sourceRef="string(searchresults/searchresult[1]/cn)" sourceType="xml" />			
+				
+				<mapping source="transport:resultXML" target="parameter:cn-list" sourceRef="searchresults/searchresult/cn" sourceType="xml" >
+					<mapping target="parameter:altName" sourceRef="." sourceType="xml" />
+				</mapping>
+				
+				<mapping source="transport:resultXML" target="parameter:div" sourceRef="string(searchresults/searchresult[1]/div)" sourceType="xml" />			
+				<mapping source="transport:resultXML" target="parameter:dept" sourceRef="string(searchresults/searchresult[1]/dept)" sourceType="xml" />			
+				<mapping source="transport:resultXML" target="parameter:emailAddress" sourceRef="string(searchresults/searchresult[1]/emailAddress)" sourceType="xml" />							
+				<mapping source="transport:resultXML" target="parameter:employeeCountryCode" sourceRef="string(searchresults/searchresult[1]/employeeCountryCode)" sourceType="xml" />			
+				<mapping source="transport:resultXML" target="parameter:employeeType" sourceRef="string(searchresults/searchresult[1]/employeeType)" sourceType="xml" />			
+				<mapping source="transport:resultXML" target="parameter:givenName" sourceRef="string(searchresults/searchresult[1]/givenName)" sourceType="xml" />			
+				<mapping source="transport:resultXML" target="parameter:isManager" sourceRef="string(searchresults/searchresult[1]/isManager)" sourceType="xml" />			
+				<mapping source="transport:resultXML" target="parameter:jobResponsibilities" sourceRef="string(searchresults/searchresult[1]/jobResponsibilities)" sourceType="xml" />			
+				<mapping source="transport:resultXML" target="parameter:mobile" sourceRef="string(searchresults/searchresult[1]/mobile)" sourceType="xml" />			
+				<mapping source="transport:resultXML" target="parameter:sn" sourceRef="string(searchresults/searchresult[1]/sn)" sourceType="xml" />			
+				<mapping source="transport:resultXML" target="parameter:telephoneNumber" sourceRef="string(searchresults/searchresult[1]/telephoneNumber)" sourceType="xml" />			
+				<mapping source="transport:resultXML" target="parameter:title" sourceRef="string(searchresults/searchresult[1]/title)" sourceType="xml" />			
+				<mapping source="transport:resultXML" target="parameter:uid" sourceRef="string(searchresults/searchresult[1]/uid)" sourceType="xml" />			
+			</mapping>
+		</serviceMapping>
+	</outbound>
+</serviceDescription>
